@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs')
 
 for (let year = 1946; year <= 2022; year++)
 {
