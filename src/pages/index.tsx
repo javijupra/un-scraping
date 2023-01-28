@@ -36,30 +36,35 @@ const IndexPage: NextPageWithLayout = () => {
             //   console.log(vote.country);
             // return vote.country === geo.properties.name.toUpperCase();
             // });
+
             console.log(votesQuery.data?.items.length);
             console.log('---------------------');
-            let count = 0;
+
+            let votes = votesQuery.data?.items;
+
             geographies.map((geo) => {
-              const vote = votesQuery.data?.items.filter((vote) => {
-                return vote.country === geo.properties.name.toUpperCase();
+              votes = votes?.filter((vote) => {
+                return vote.country !== geo.properties.name.toUpperCase();
               });
-              count = count + (vote && vote.length > 0 ? 1 : 0);
             });
-            console.log(count);
+
+            console.log(votes);
+
             return geographies.map((geo) => {
               // console.log(geo);
               // console.log(vote.country);
               // console.log(geo.properties.name.toUpperCase());
-              // const vote = votesQuery.data?.items.filter((vote) => {
-              //   console.log(vote.country);
-              //   return vote.country === geo.properties.name.toUpperCase();
-              // });
-              // console.log(vote);
+
+              const vote = votesQuery.data?.items.find(
+                (vote) => vote.country === geo.properties.name.toUpperCase(),
+              )?.vote;
+
               return (
                 <Geography
                   style={{
                     default: {
-                      fill: '#D6D6DA',
+                      //   fill: '#D6D6DA',
+                      fill: stc(vote),
                       outline: 'none',
                     },
                     hover: {
