@@ -2,128 +2,94 @@ import { trpc } from '../utils/trpc';
 import { NextPageWithLayout } from './_app';
 import { inferProcedureInput } from '@trpc/server';
 import Link from 'next/link';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import type { AppRouter } from '~/server/routers/_app';
+import { Button } from 'antd';
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import stc from 'string-to-color';
 
 const IndexPage: NextPageWithLayout = () => {
   const utils = trpc.useContext();
-  const postsQuery = trpc.post.list.useInfiniteQuery(
-    {
-      limit: 5,
-    },
-    {
-      getPreviousPageParam(lastPage) {
-        return lastPage.nextCursor;
-      },
-    },
-  );
-
-  const addPost = trpc.post.add.useMutation({
-    async onSuccess() {
-      // refetches posts after a post is added
-      await utils.post.list.invalidate();
-    },
+  const record_input = useState(671311);
+  const votesQuery = trpc.votes.list.useQuery({
+    record: record_input[0],
   });
 
   // prefetch all posts for instant navigation
   // useEffect(() => {
-  //   const allPosts = postsQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  //   const allPosts = votesQuery.data?.pages.flatMap((page) => page.items) ?? [];
   //   for (const { id } of allPosts) {
   //     void utils.post.byId.prefetch({ id });
   //   }
-  // }, [postsQuery.data, utils]);
+  // }, [votesQuery.data, utils]);
 
   return (
     <>
-      <h1>Welcome to your tRPC starter!</h1>
-      <p>
-        If you get stuck, check <a href="https://trpc.io">the docs</a>, write a
-        message in our <a href="https://trpc.io/discord">Discord-channel</a>, or
-        write a message in{' '}
-        <a href="https://github.com/trpc/trpc/discussions">
-          GitHub Discussions
-        </a>
-        .
-      </p>
-
-      <h2>
-        Latest Posts
-        {postsQuery.status === 'loading' && '(loading)'}
-      </h2>
-
-      <button
-        onClick={() => postsQuery.fetchPreviousPage()}
-        disabled={
-          !postsQuery.hasPreviousPage || postsQuery.isFetchingPreviousPage
-        }
-      >
-        {postsQuery.isFetchingPreviousPage
-          ? 'Loading more...'
-          : postsQuery.hasPreviousPage
-          ? 'Load More'
-          : 'Nothing more to load'}
-      </button>
-
-      {postsQuery.data?.pages.map((page, index) => (
-        <Fragment key={page.items[0]?.id || index}>
-          {page.items.map((item) => (
-            <article key={item.id}>
-              <h3>{item.title}</h3>
-              <Link href={`/post/${item.id}`}>View more</Link>
-            </article>
-          ))}
+      <ComposableMap>
+        <Geographies
+          geography={
+            'https://raw.githubusercontent.com/deldersveld/topojson/master/world-countries.json'
+          }
+        >
+          {({ geographies }) => {
+            // votesQuery.data?.items.filter((vote) => {
+            //   console.log(vote.country);
+            // return vote.country === geo.properties.name.toUpperCase();
+            // });
+            console.log(votesQuery.data?.items.length);
+            console.log('---------------------');
+            let count = 0;
+            geographies.map((geo) => {
+              const vote = votesQuery.data?.items.filter((vote) => {
+                return vote.country === geo.properties.name.toUpperCase();
+              });
+              count = count + (vote && vote.length > 0 ? 1 : 0);
+            });
+            console.log(count);
+            return geographies.map((geo) => {
+              // console.log(geo);
+              // console.log(vote.country);
+              // console.log(geo.properties.name.toUpperCase());
+              // const vote = votesQuery.data?.items.filter((vote) => {
+              //   console.log(vote.country);
+              //   return vote.country === geo.properties.name.toUpperCase();
+              // });
+              // console.log(vote);
+              return (
+                <Geography
+                  style={{
+                    default: {
+                      fill: '#D6D6DA',
+                      outline: 'none',
+                    },
+                    hover: {
+                      fill: '#F53',
+                      outline: 'none',
+                    },
+                    pressed: {
+                      fill: '#E42',
+                      outline: 'none',
+                    },
+                  }}
+                  key={geo.rsmKey}
+                  geography={geo}
+                />
+              );
+            });
+          }}
+        </Geographies>
+      </ComposableMap>
+      <h2>{record_input[0]}</h2>
+      {votesQuery.data?.items.map((vote, index) => (
+        <Fragment key={index}>
+          <article>
+            <h3>
+              {vote.country}: {vote.vote}
+            </h3>
+            {/* <Button /> */}
+          </article>
         </Fragment>
       ))}
-
-      <hr />
-
-      <h3>Add a Post</h3>
-
-      <form
-        onSubmit={async (e) => {
-          /**
-           * In a real app you probably don't want to use this manually
-           * Checkout React Hook Form - it works great with tRPC
-           * @see https://react-hook-form.com/
-           * @see https://kitchen-sink.trpc.io/react-hook-form
-           */
-          e.preventDefault();
-          const $form = e.currentTarget;
-          const values = Object.fromEntries(new FormData($form));
-          type Input = inferProcedureInput<AppRouter['post']['add']>;
-          //    ^?
-          const input: Input = {
-            title: values.title as string,
-            text: values.text as string,
-          };
-          try {
-            await addPost.mutateAsync(input);
-
-            $form.reset();
-          } catch (cause) {
-            console.error({ cause }, 'Failed to add post');
-          }
-        }}
-      >
-        <label htmlFor="title">Title:</label>
-        <br />
-        <input
-          id="title"
-          name="title"
-          type="text"
-          disabled={addPost.isLoading}
-        />
-
-        <br />
-        <label htmlFor="text">Text:</label>
-        <br />
-        <textarea id="text" name="text" disabled={addPost.isLoading} />
-        <br />
-        <input type="submit" disabled={addPost.isLoading} />
-        {addPost.error && (
-          <p style={{ color: 'red' }}>{addPost.error.message}</p>
-        )}
-      </form>
     </>
   );
 };
