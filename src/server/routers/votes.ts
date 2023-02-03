@@ -21,31 +21,25 @@ const defaultVoteSelect = Prisma.validator<Prisma.un_votesSelect>()({
 });
 
 export const votesRouter = router({
-  list: publicProcedure
+  voting_record: publicProcedure
     .input(
       z.object({
         record: z.number(),
       }),
     )
     .query(async ({ input }) => {
-      /**
-       * For pagination docs you can have a look here
-       * @see https://trpc.io/docs/useInfiniteQuery
-       * @see https://www.prisma.io/docs/concepts/components/prisma-client/pagination
-       */
-
-      const items = await prisma.un_votes.findMany({
+      return await prisma.un_votes.findMany({
         select: defaultVoteSelect,
-        // get an extra item at the end which we'll use as next cursor
-        // take: limit + 1,
         where: { record: { equals: input.record } },
         orderBy: {
           country: 'desc',
         },
       });
-
-      return {
-        items: items.reverse(),
-      };
     }),
+
+  unique_records: publicProcedure.query(async () => {
+    return await prisma.un_votes.groupBy({
+      by: ['record'],
+    });
+  }),
 });
