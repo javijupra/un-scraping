@@ -39,7 +39,7 @@ const IndexPage: NextPageWithLayout = () => {
   const votesQuery = trpc.votes.voting_record.useQuery({
     record: record_selected,
   });
-  const allRecordsQuery = trpc.votes.unique_records.useQuery();
+  const allUniqueRecordsQuery = trpc.votes.unique_records.useQuery();
 
   // prefetch all posts for instant navigation
   // useEffect(() => {
@@ -69,30 +69,26 @@ const IndexPage: NextPageWithLayout = () => {
       `}</style>
 
       <div style={{ position: 'absolute' }}>
-        <ProFormSelect
-          name="select_record"
-          label={<p style={{ marginLeft: '2vw' }}>Voting Record</p>}
-          request={async () =>
-            await fetch(
-              'http://localhost:3000/api/trpc/votes.unique_records?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D',
-            )
-              .then((resp) => resp.json())
-              .then((data) => {
-                return data[0].result.data.json.map((item: any) => ({
-                  label: item.record ?? 'no data',
-                  value: item.record ?? 'no data',
-                }));
-              })
-          }
-          placeholder="Please select a voting record"
-          // required={false}
-          // rules={[{ required: true, message: 'Please select a voting record' }]}
-          fieldProps={{
-            onChange: (input) => setSelectedRecord(input),
-            defaultValue: 671311,
-          }}
-          style={{ marginBottom: '0px' }}
-        />
+        {allUniqueRecordsQuery.isSuccess && (
+          <ProFormSelect
+            name="select_record"
+            label={<p style={{ marginLeft: '2vw' }}>Voting Record</p>}
+            request={async () =>
+              allUniqueRecordsQuery.data.map((item: any) => ({
+                label: item.record ?? 'no data',
+                value: item.record ?? 'no data',
+              }))
+            }
+            placeholder="Please select a voting record"
+            // required={false}
+            // rules={[{ required: true, message: 'Please select a voting record' }]}
+            fieldProps={{
+              onChange: (input) => setSelectedRecord(input),
+              defaultValue: 671311,
+            }}
+            style={{ marginBottom: '0px' }}
+          />
+        )}
 
         <div style={{ marginTop: '35vh', marginLeft: '2vw' }}>
           <div className="legend_row">

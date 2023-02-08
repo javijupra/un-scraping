@@ -13,3 +13,17 @@ model un_votes {
   record  Int
   id      Int    @id @default(autoincrement())
 }
+
+model records {
+  record Int       @id
+  date   DateTime? @db.Date
+  title  String?   @db.VarChar(400)
+}
+
+model votes {
+  vote    String @db.Char(1)
+  country String @db.VarChar(50)
+  record  Int
+
+  @@id([vote, country, record])
+}
