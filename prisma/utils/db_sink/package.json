@@ -1,0 +1,22 @@
+{
+  "name": "db_sink",
+  "version": "1.0.0",
+  "description": "Sync data with UNDL",
+  "author": "javijupra",
+  "license": "ISC",
+  "main": "index.js",
+  "bin": {
+    "sink": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "npx tsc index.ts"
+  },
+  "devDependencies": {
+    "@types/yargs": "^17.0.22",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "yargs": "^17.6.2"
+  }
+}
