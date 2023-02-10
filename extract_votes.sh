@@ -6,6 +6,7 @@
 
 # cat -n ../test.txt | xargs -P0 -n2 sh -c "curl $1 | xml sel -t -v '/_:collection/_:record/_:datafield[@tag=\"967\"]/_:subfield[@code=\"d\" or @code=\"e\"]' > $0.txt"
 
+# cat -n clean_results_urls.txt | xargs -P200 -n2 sh extract_votes.sh
 curl $2 | xml sel -t -v '/_:collection/_:record/_:datafield[@tag="967"]/_:subfield[@code="d" or @code="e"]' > extracted_votes/$1.txt
 
 # Add document id:
